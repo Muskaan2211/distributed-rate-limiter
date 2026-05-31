@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 router = APIRouter()
 
@@ -16,3 +17,8 @@ def health():
 @router.get("/limited")
 def limited():
     return {"message": "You reached the protected route"}
+
+
+@router.get("/metrics")
+def metrics():
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)

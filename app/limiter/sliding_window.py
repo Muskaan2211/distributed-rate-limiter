@@ -1,5 +1,6 @@
 import time
 import uuid
+
 from app.config import RATE_LIMIT, WINDOW_SECONDS
 from app.redis_client import redis_client
 
@@ -16,12 +17,20 @@ class SlidingWindowLimiter:
 
     local current = redis.call("ZCARD", key)
     if current >= limit then
-        return {0, current}
+        local oldest = redis.call("ZRANGE", key, 0, 0, "WITHSCORES")
+        local retry_after = 1
+        if oldest[2] ~= nil then
+            retry_after = math.ceil((tonumber(oldest[2]) + window) - now)
+            if retry_after < 1 then
+                retry_after = 1
+            end
+        end
+        return {0, current, retry_after}
     end
 
     redis.call("ZADD", key, now, request_id)
     redis.call("EXPIRE", key, math.ceil(window))
-    return {1, current + 1}
+    return {1, current + 1, 0}
     """
 
     def __init__(self):
@@ -38,6 +47,8 @@ class SlidingWindowLimiter:
             args=[now, WINDOW_SECONDS, limit, request_id],
         )
 
-        allowed = int(result[0])
-        current = int(result[1])
-        return allowed == 1, current
+        allowed = int(result[0]) == 1
+        current_count = int(result[1])
+        retry_after = int(result[2])
+
+        return allowed, current_count, retry_after

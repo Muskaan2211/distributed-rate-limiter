@@ -14,3 +14,6 @@ TOKEN_BUCKET_CAPACITY = int(os.getenv("TOKEN_BUCKET_CAPACITY", "5"))
 TOKEN_BUCKET_REFILL_RATE = float(os.getenv("TOKEN_BUCKET_REFILL_RATE", "1"))
 
 RATE_LIMIT_ALGORITHM = os.getenv("RATE_LIMIT_ALGORITHM", "token_bucket")
+API_KEY_HEADER = os.getenv("API_KEY_HEADER", "X-API-Key")
+
+IGNORED_PATHS = {"/", "/health", "/docs", "/openapi.json", "/metrics"}
