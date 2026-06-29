@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Distributed Rate Limiter Gateway</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">FastAPI + Redis + Kubernetes-ready</p>
+        <h1>Distributed Rate Limiter & API Gateway</h1>
+        <p class="subtitle">A resume-ready, production-style gateway with Redis atomic Lua scripts, token bucket and sliding window algorithms, Prometheus metrics, Docker, and Kubernetes manifests.</p>
+        <div class="actions">
+          <button id="sendOne">Send Protected Request</button>
+          <button id="burst">Run 25 Request Burst</button>
+          <button id="reset">Reset Demo State</button>
+        </div>
+      </div>
+      <div class="status-card">
+        <span class="pulse"></span>
+        <h2 id="serviceState">Checking service...</h2>
+        <p id="policy">Loading rate-limit policy...</p>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="metric"><span>Allowed</span><strong id="allowed">0</strong></article>
+      <article class="metric"><span>Blocked</span><strong id="blocked">0</strong></article>
+      <article class="metric"><span>Last status</span><strong id="lastStatus">-</strong></article>
+      <article class="metric"><span>Remaining</span><strong id="remaining">-</strong></article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Live gateway responses</h2>
+        <a href="/docs" target="_blank">Open API Docs</a>
+      </div>
+      <pre id="log">Ready. Click a button to exercise /api/v1/limited.</pre>
+    </section>
+
+    <section class="architecture">
+      <h2>What interviewers can see</h2>
+      <div class="steps">
+        <div><strong>01</strong><p>Request enters FastAPI gateway middleware.</p></div>
+        <div><strong>02</strong><p>Client identity is hashed from API key or IP.</p></div>
+        <div><strong>03</strong><p>Redis Lua script atomically checks token bucket or sliding window state.</p></div>
+        <div><strong>04</strong><p>Headers, 429 retry behavior, and Prometheus metrics are returned.</p></div>
+      </div>
+    </section>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>

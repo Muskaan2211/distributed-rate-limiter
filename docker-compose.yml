@@ -1,7 +1,17 @@
 services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file: .env.example
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
   redis:
-    image: redis:7
-    container_name: redis-rate-limit
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
     ports:
       - "6379:6379"
     healthcheck:
@@ -9,18 +19,22 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-
-  app:
-    build: .
-    container_name: rate-limiter-app
+  prometheus:
+    image: prom/prometheus:v2.55.1
     ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DB: 0
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     depends_on:
-      redis:
-        condition: service_healthy
+      - api
+  grafana:
+    image: grafana/grafana:11.4.0
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
