@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rate-limiter-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: rate-limiter-api
+  template:
+    metadata:
+      labels:
+        app: rate-limiter-api
+    spec:
+      containers:
+        - name: api
+          image: distributed-rate-limiter:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: REDIS_URL
+              value: redis://redis:6379/0
+            - name: RATE_LIMIT_ALGORITHM
+              value: token_bucket
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rate-limiter-api
+spec:
+  type: LoadBalancer
+  selector:
+    app: rate-limiter-api
+  ports:
+    - port: 80
+      targetPort: 8000
